@@ -1,5 +1,6 @@
 const express = require('express');
 const { createClient } = require('redis');
+const fetch = require('node-fetch');
 
 const app = express();
 const port = 5000;
@@ -107,6 +108,46 @@ app.get('/recipe/:fooditem', (req, res) => {
         })
     } catch (error) {
         console.log(error)
+    }
+});
+
+
+app.get('/recipes/:fooditem', async (req, res) => {
+    try {
+        const foodItem = req.params.fooditem;
+
+        // Check the redis store for the data first
+        client.get(foodItem, async (err, recipe) => {
+            if (err) {
+                console.error('Error fetching data from Redis:', err);
+                return res.status(500).send('Error fetching data from Redis');
+            }
+
+            if (recipe) {
+                return res.status(200).send({
+                    error: false,
+                    message: `Recipe for ${foodItem} from the cache`,
+                    data: JSON.parse(recipe)
+                });
+            } else { // When the data is not found in the cache then we can make request to the server
+
+                const recipeResponse = await fetch(`http://www.recipepuppy.com/api/?q=${foodItem}`);
+                const recipeData = await recipeResponse.json(); // Parse JSON response
+
+                // save the record in the cache for subsequent request
+                client.setex(foodItem, 1440, JSON.stringify(recipeData.results));
+
+                // return the result to the client
+                return res.status(200).send({
+                    error: false,
+                    message: `Recipe for ${foodItem} from the server`,
+                    data: recipeData.results
+                });
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send('Error occurred');
     }
 });
 
