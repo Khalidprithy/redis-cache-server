@@ -27,9 +27,10 @@ const cacheMiddleware = async (req, res, next) => {
         const data = await client.get(req.url);
         if (data !== null) {
             // If data is found in cache, send it
-            res.send(JSON.parse(data));
+            res.send({ message: JSON.parse(data), cacheStatus: 'hit' });
         } else {
             // If data is not in cache, proceed to the next middleware
+            res.locals.cacheMiss = true;
             next();
         }
     } catch (err) {
@@ -42,9 +43,13 @@ const cacheMiddleware = async (req, res, next) => {
 app.get('/data-1', cacheMiddleware, async (req, res) => {
     try {
         const data = await fetchData(1000);
-        // Cache the response for   30 seconds
+        // Cache the response for 30 seconds
         await client.set(req.url, JSON.stringify(data), 'EX', 30);
-        res.send(data);
+        if (res.locals.cacheMiss) {
+            res.send({ message: data, cacheStatus: 'miss' });
+        } else {
+            res.send({ message: data, cacheStatus: 'hit' });
+        }
     } catch (error) {
         res.status(500).send('Error fetching data');
     }
@@ -54,9 +59,13 @@ app.get('/data-1', cacheMiddleware, async (req, res) => {
 app.get('/data-5', cacheMiddleware, async (req, res) => {
     try {
         const data = await fetchData(5000);
-        // Cache the response for   30 seconds
+        // Cache the response for 30 seconds
         await client.set(req.url, JSON.stringify(data), 'EX', 30);
-        res.send(data);
+        if (res.locals.cacheMiss) {
+            res.send({ message: data, cacheStatus: 'miss' });
+        } else {
+            res.send({ message: data, cacheStatus: 'hit' });
+        }
     } catch (error) {
         res.status(500).send('Error fetching data');
     }
@@ -66,9 +75,13 @@ app.get('/data-5', cacheMiddleware, async (req, res) => {
 app.get('/data-10', cacheMiddleware, async (req, res) => {
     try {
         const data = await fetchData(10000);
-        // Cache the response for   30 seconds
+        // Cache the response for 30 seconds
         await client.set(req.url, JSON.stringify(data), 'EX', 30);
-        res.send(data);
+        if (res.locals.cacheMiss) {
+            res.send({ message: data, cacheStatus: 'miss' });
+        } else {
+            res.send({ message: data, cacheStatus: 'hit' });
+        }
     } catch (error) {
         res.status(500).send('Error fetching data');
     }
@@ -78,7 +91,7 @@ app.get('/data-10', cacheMiddleware, async (req, res) => {
 
 // Start the server
 app.listen(port, async () => {
-    console.log(`Server running at http://localhost:${port}`);
+    console.log(`Server is running`);
     try {
         await client.connect();
         console.log('Connected to Redis');
