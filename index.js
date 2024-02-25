@@ -1,5 +1,6 @@
 const express = require('express');
 const { createClient } = require('redis');
+const axios = require('axios'); // Import axios
 
 const app = express();
 const port = 5000;
@@ -77,46 +78,45 @@ app.get('/data-10', cacheMiddleware, async (req, res) => {
     }
 });
 
-
-app.get('/recipe/:fooditem', (req, res) => {
+app.get('/recipe/:fooditem', async (req, res) => {
     try {
         const foodItem = req.params.fooditem;
 
         // Check the redis store for the data first
         client.get(foodItem, async (err, recipe) => {
+            if (err) {
+                console.error('Error fetching data from Redis:', err);
+                return res.status(500).send('Error fetching data from Redis');
+            }
+
             if (recipe) {
                 return res.status(200).send({
                     error: false,
                     message: `Recipe for ${foodItem} from the cache`,
                     data: JSON.parse(recipe)
-                })
+                });
             } else { // When the data is not found in the cache then we can make request to the server
 
-                const recipe = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
+                const recipeResponse = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
 
                 // save the record in the cache for subsequent request
-                client.setex(foodItem, 10, JSON.stringify(recipe.data.results));
+                client.setex(foodItem, 10, JSON.stringify(recipeResponse.data.results));
 
                 // return the result to the client
                 return res.status(200).send({
                     error: false,
                     message: `Recipe for ${foodItem} from the server`,
-                    data: recipe.data.results
+                    data: recipeResponse.data.results
                 });
             }
-        })
+        });
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        res.status(500).send('Error occurred');
     }
 });
 
 // Start the server
-app.listen(port, async () => {
+app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-    try {
-        await client.connect();
-        console.log('Connected to Redis');
-    } catch (err) {
-        console.error('Error connecting to Redis:', err);
-    }
 });
