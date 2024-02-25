@@ -4,7 +4,7 @@ const { createClient } = require('redis');
 const app = express();
 const port = 5000;
 
-const fetchData = (time) => {
+const fetchData = async (time) => {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve({ message: `Data from external API with ${time} ms delay` });
@@ -29,78 +29,57 @@ const cacheMiddleware = async (req, res, next) => {
             // If data is found in cache, send it
             res.locals.cacheHit = true;
             res.locals.cachedData = JSON.parse(data);
-            next();
         } else {
-            // If data is not in cache, proceed to the next middleware
+            // If data is not in cache, mark cache hit as false
             res.locals.cacheHit = false;
-            next();
         }
+        next();
     } catch (err) {
         console.error('Error fetching data from Redis:', err);
         next(err); // Pass the error to the error handling middleware
     }
 };
 
-// Example route
+// Route handler function
+const fetchDataAndCache = async (req, res, delay) => {
+    try {
+        const data = await fetchData(delay);
+        // Cache the response for 30 seconds
+        await client.set(req.url, JSON.stringify(data), 'EX', 30);
+        res.send({ message: data, cacheStatus: 'miss' });
+    } catch (error) {
+        res.status(500).send('Error fetching data');
+    }
+};
+
+// Example routes
 app.get('/data-1', cacheMiddleware, async (req, res) => {
-    try {
-        if (res.locals.cacheHit) {
-            res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
-        } else {
-            const data = await fetchData(1000);
-            // Cache the response for 30 seconds
-            await client.set(req.url, 30, JSON.stringify(data), {
-                EX: 10,
-                NX: true,
-            });
-            res.send({ message: data, cacheStatus: 'miss' });
-        }
-    } catch (error) {
-        res.status(500).send('Error fetching data');
+    if (res.locals.cacheHit) {
+        res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
+    } else {
+        await fetchDataAndCache(req, res, 1000);
     }
 });
 
-// Example route
 app.get('/data-5', cacheMiddleware, async (req, res) => {
-    try {
-        if (res.locals.cacheHit) {
-            res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
-        } else {
-            const data = await fetchData(5000);
-            // Cache the response for 30 seconds
-            await client.set(req.url, 30, JSON.stringify(data), {
-                EX: 10,
-                NX: true,
-            });
-            res.send({ message: data, cacheStatus: 'miss' });
-        }
-    } catch (error) {
-        res.status(500).send('Error fetching data');
+    if (res.locals.cacheHit) {
+        res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
+    } else {
+        await fetchDataAndCache(req, res, 5000);
     }
 });
 
-// Example route
 app.get('/data-10', cacheMiddleware, async (req, res) => {
-    try {
-        if (res.locals.cacheHit) {
-            res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
-        } else {
-            const data = await fetchData(10000);
-            // Cache the response for 30 seconds
-            await client.set(req.url, 30, JSON.stringify(data), {
-                EX: 10,
-                NX: true,
-            });
-            res.send({ message: data, cacheStatus: 'miss' });
-        }
-    } catch (error) {
-        res.status(500).send('Error fetching data');
+    if (res.locals.cacheHit) {
+        res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
+    } else {
+        await fetchDataAndCache(req, res, 10000);
     }
 });
 
 // Start the server
 app.listen(port, async () => {
-    console.log(`Server is running`);
+    console.log(`Server is running on port ${port}`);
     try {
         await client.connect();
         console.log('Connected to Redis');
