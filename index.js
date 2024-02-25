@@ -1,6 +1,6 @@
 const express = require('express');
 const { createClient } = require('redis');
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 const app = express();
 const port = 5000;
@@ -93,7 +93,7 @@ app.get('/recipe/:fooditem', (req, res) => {
                 })
             } else { // When the data is not found in the cache then we can make request to the server
 
-                const recipe = await fetch(`http://www.recipepuppy.com/api/?q=${foodItem}`);
+                const recipe = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
 
                 // save the record in the cache for subsequent request
                 client.setex(foodItem, 1440, JSON.stringify(recipe.data.results));
@@ -131,7 +131,7 @@ app.get('/recipes/:fooditem', async (req, res) => {
                 });
             } else { // When the data is not found in the cache then we can make request to the server
 
-                const recipeResponse = await fetch(`http://www.recipepuppy.com/api/?q=${foodItem}`);
+                const recipeResponse = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
                 const recipeData = await recipeResponse.json(); // Parse JSON response
 
                 // save the record in the cache for subsequent request
