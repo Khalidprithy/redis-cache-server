@@ -79,30 +79,30 @@ app.get('/data-10', cacheMiddleware, async (req, res) => {
 });
 
 
-app.get('/recipe/:fooditem', (req, res) => {
+app.get('/products/:product', (req, res) => {
     try {
-        const foodItem = req.params.fooditem;
+        const product = req.params.product;
 
         // Check the redis store for the data first
-        client.get(foodItem, async (err, recipe) => {
+        client.get(product, async (err, recipe) => {
             if (recipe) {
                 return res.status(200).send({
                     error: false,
-                    message: `Recipe for ${foodItem} from the cache`,
+                    message: `Recipe for ${product} from the cache`,
                     data: JSON.parse(recipe)
                 })
             } else { // When the data is not found in the cache then we can make request to the server
 
-                const recipe = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
+                const product = await axios.get(`https://dummyjson.com/products/${product}`);
 
                 // save the record in the cache for subsequent request
-                client.setex(foodItem, 1440, JSON.stringify(recipe.data.results));
+                client.setex(foodItem, 1440, JSON.stringify(product.data));
 
                 // return the result to the client
                 return res.status(200).send({
                     error: false,
-                    message: `Recipe for ${foodItem} from the server`,
-                    data: recipe.data.results
+                    message: `Product for ${product} from the server`,
+                    data: product.data
                 });
             }
         })
@@ -112,44 +112,6 @@ app.get('/recipe/:fooditem', (req, res) => {
 });
 
 
-app.get('/recipes/:fooditem', async (req, res) => {
-    try {
-        const foodItem = req.params.fooditem;
-
-        // Check the redis store for the data first
-        client.get(foodItem, async (err, recipe) => {
-            if (err) {
-                console.error('Error fetching data from Redis:', err);
-                return res.status(500).send('Error fetching data from Redis');
-            }
-
-            if (recipe) {
-                return res.status(200).send({
-                    error: false,
-                    message: `Recipe for ${foodItem} from the cache`,
-                    data: JSON.parse(recipe)
-                });
-            } else { // When the data is not found in the cache then we can make request to the server
-
-                const recipeResponse = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
-                const recipeData = await recipeResponse.json(); // Parse JSON response
-
-                // save the record in the cache for subsequent request
-                client.setex(foodItem, 1440, JSON.stringify(recipeData.results));
-
-                // return the result to the client
-                return res.status(200).send({
-                    error: false,
-                    message: `Recipe for ${foodItem} from the server`,
-                    data: recipeData.results
-                });
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send('Error occurred');
-    }
-});
 
 // Start the server
 app.listen(port, async () => {
