@@ -49,7 +49,10 @@ app.get('/data-1', cacheMiddleware, async (req, res) => {
         } else {
             const data = await fetchData(1000);
             // Cache the response for 30 seconds
-            await client.setex(req.url, 30, JSON.stringify(data));
+            await client.set(req.url, 30, JSON.stringify(data), {
+                EX: 10,
+                NX: true,
+            });
             res.send({ message: data, cacheStatus: 'miss' });
         }
     } catch (error) {
@@ -65,7 +68,10 @@ app.get('/data-5', cacheMiddleware, async (req, res) => {
         } else {
             const data = await fetchData(5000);
             // Cache the response for 30 seconds
-            await client.setex(req.url, 30, JSON.stringify(data));
+            await client.set(req.url, 30, JSON.stringify(data), {
+                EX: 10,
+                NX: true,
+            });
             res.send({ message: data, cacheStatus: 'miss' });
         }
     } catch (error) {
@@ -81,7 +87,10 @@ app.get('/data-10', cacheMiddleware, async (req, res) => {
         } else {
             const data = await fetchData(10000);
             // Cache the response for 30 seconds
-            await client.setex(req.url, 30, JSON.stringify(data));
+            await client.set(req.url, 30, JSON.stringify(data), {
+                EX: 10,
+                NX: true,
+            });
             res.send({ message: data, cacheStatus: 'miss' });
         }
     } catch (error) {
