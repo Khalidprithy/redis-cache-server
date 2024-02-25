@@ -14,7 +14,7 @@ const fetchData = () => {
 
 // Create a Redis client
 const client = createClient({
-    url: 'rediss://red-cndlh0la73kc73b7f6h0:B1WJDzO3pCYkzbqIzSza9hKhBYyNZ0js@oregon-redis.render.com:6379' // Use the URL format
+    url: 'redis://red-cndlh0la73kc73b7f6h0:6379' // Use the URL format
 });
 
 client.on('error', (err) => {
