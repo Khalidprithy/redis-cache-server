@@ -27,10 +27,12 @@ const cacheMiddleware = async (req, res, next) => {
         const data = await client.get(req.url);
         if (data !== null) {
             // If data is found in cache, send it
-            res.send({ message: JSON.parse(data), cacheStatus: 'hit' });
+            res.locals.cacheHit = true;
+            res.locals.cachedData = JSON.parse(data);
+            next();
         } else {
             // If data is not in cache, proceed to the next middleware
-            res.locals.cacheMiss = true;
+            res.locals.cacheHit = false;
             next();
         }
     } catch (err) {
@@ -42,13 +44,13 @@ const cacheMiddleware = async (req, res, next) => {
 // Example route
 app.get('/data-1', cacheMiddleware, async (req, res) => {
     try {
-        const data = await fetchData(1000);
-        // Cache the response for 30 seconds
-        await client.set(req.url, JSON.stringify(data), 'EX', 30);
-        if (res.locals.cacheMiss) {
-            res.send({ message: data, cacheStatus: 'miss' });
+        if (res.locals.cacheHit) {
+            res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
         } else {
-            res.send({ message: data, cacheStatus: 'hit' });
+            const data = await fetchData(1000);
+            // Cache the response for 30 seconds
+            await client.setex(req.url, 30, JSON.stringify(data));
+            res.send({ message: data, cacheStatus: 'miss' });
         }
     } catch (error) {
         res.status(500).send('Error fetching data');
@@ -58,13 +60,13 @@ app.get('/data-1', cacheMiddleware, async (req, res) => {
 // Example route
 app.get('/data-5', cacheMiddleware, async (req, res) => {
     try {
-        const data = await fetchData(5000);
-        // Cache the response for 30 seconds
-        await client.set(req.url, JSON.stringify(data), 'EX', 30);
-        if (res.locals.cacheMiss) {
-            res.send({ message: data, cacheStatus: 'miss' });
+        if (res.locals.cacheHit) {
+            res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
         } else {
-            res.send({ message: data, cacheStatus: 'hit' });
+            const data = await fetchData(5000);
+            // Cache the response for 30 seconds
+            await client.setex(req.url, 30, JSON.stringify(data));
+            res.send({ message: data, cacheStatus: 'miss' });
         }
     } catch (error) {
         res.status(500).send('Error fetching data');
@@ -74,20 +76,18 @@ app.get('/data-5', cacheMiddleware, async (req, res) => {
 // Example route
 app.get('/data-10', cacheMiddleware, async (req, res) => {
     try {
-        const data = await fetchData(10000);
-        // Cache the response for 30 seconds
-        await client.set(req.url, JSON.stringify(data), 'EX', 30);
-        if (res.locals.cacheMiss) {
-            res.send({ message: data, cacheStatus: 'miss' });
+        if (res.locals.cacheHit) {
+            res.send({ message: res.locals.cachedData, cacheStatus: 'hit' });
         } else {
-            res.send({ message: data, cacheStatus: 'hit' });
+            const data = await fetchData(10000);
+            // Cache the response for 30 seconds
+            await client.setex(req.url, 30, JSON.stringify(data));
+            res.send({ message: data, cacheStatus: 'miss' });
         }
     } catch (error) {
         res.status(500).send('Error fetching data');
     }
 });
-
-
 
 // Start the server
 app.listen(port, async () => {
