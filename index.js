@@ -95,7 +95,7 @@ app.get('/recipe/:fooditem', (req, res) => {
                 const recipe = await axios.get(`http://www.recipepuppy.com/api/?q=${foodItem}`);
 
                 // save the record in the cache for subsequent request
-                client.setex(foodItem, 1440, JSON.stringify(recipe.data.results));
+                client.setex(foodItem, 10, JSON.stringify(recipe.data.results));
 
                 // return the result to the client
                 return res.status(200).send({
