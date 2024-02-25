@@ -4,11 +4,11 @@ const { createClient } = require('redis');
 const app = express();
 const port = 5000;
 
-const fetchData = () => {
+const fetchData = (time) => {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve({ message: 'Data from external API' });
-        }, 1000); // Simulate a delay
+        }, time); // Simulate a delay
     });
 };
 
@@ -39,9 +39,9 @@ const cacheMiddleware = async (req, res, next) => {
 };
 
 // Example route
-app.get('/data', cacheMiddleware, async (req, res) => {
+app.get('/data-1', cacheMiddleware, async (req, res) => {
     try {
-        const data = await fetchData();
+        const data = await fetchData(1000);
         // Cache the response for   30 seconds
         await client.set(req.url, JSON.stringify(data), 'EX', 30);
         res.send(data);
@@ -49,6 +49,32 @@ app.get('/data', cacheMiddleware, async (req, res) => {
         res.status(500).send('Error fetching data');
     }
 });
+
+// Example route
+app.get('/data-5', cacheMiddleware, async (req, res) => {
+    try {
+        const data = await fetchData(5000);
+        // Cache the response for   30 seconds
+        await client.set(req.url, JSON.stringify(data), 'EX', 30);
+        res.send(data);
+    } catch (error) {
+        res.status(500).send('Error fetching data');
+    }
+});
+
+// Example route
+app.get('/data-10', cacheMiddleware, async (req, res) => {
+    try {
+        const data = await fetchData(10000);
+        // Cache the response for   30 seconds
+        await client.set(req.url, JSON.stringify(data), 'EX', 30);
+        res.send(data);
+    } catch (error) {
+        res.status(500).send('Error fetching data');
+    }
+});
+
+
 
 // Start the server
 app.listen(port, async () => {
