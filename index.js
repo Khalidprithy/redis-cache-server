@@ -7,7 +7,7 @@ const port = 5000;
 const fetchData = (time) => {
     return new Promise((resolve) => {
         setTimeout(() => {
-            resolve({ message: 'Data from external API' });
+            resolve({ message: `Data from external API with ${time} ms delay` });
         }, time); // Simulate a delay
     });
 };
