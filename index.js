@@ -78,11 +78,9 @@ app.get('/data-10', cacheMiddleware, async (req, res) => {
     }
 });
 
-
-app.get('/products/:product', (req, res) => {
+app.get('/products/:product', async (req, res) => {
+    const product = req.params.product;
     try {
-        const product = req.params.product;
-
         // Check the redis store for the data first
         client.get(product, async (err, recipe) => {
             if (recipe) {
@@ -90,28 +88,22 @@ app.get('/products/:product', (req, res) => {
                     error: false,
                     message: `Recipe for ${product} from the cache`,
                     data: JSON.parse(recipe)
-                })
-            } else { // When the data is not found in the cache then we can make request to the server
-
-                const product = await axios.get(`https://dummyjson.com/products/${product}`);
-
-                // save the record in the cache for subsequent request
-                client.setex(foodItem, 1440, JSON.stringify(product.data));
-
-                // return the result to the client
+                });
+            } else {
+                const { data } = await axios.get(`https://dummyjson.com/products/${product}`);
+                await client.setex(product, 10, JSON.stringify(data));
                 return res.status(200).send({
                     error: false,
                     message: `Product for ${product} from the server`,
-                    data: product.data
+                    data: data
                 });
             }
-        })
+        });
     } catch (error) {
-        console.log(error)
+        console.error(error);
+        return res.status(500).send('Error fetching product data');
     }
 });
-
-
 
 // Start the server
 app.listen(port, async () => {
