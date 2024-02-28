@@ -11,8 +11,8 @@ const port = process.env.PORT || 5000;
 // Start the server
 async function startServer() {
     try {
+        // Redis connection
         await initializeRedisClient();
-        console.log("Redis client initialized successfully.");
 
         // API endpoint to get Redis health information
         app.get('/redis/info', getRedisServerInfo);

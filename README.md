@@ -11,6 +11,7 @@ This repository contains a Node.js server that utilizes Redis for caching and da
 
 ## Installation
 
+
 ### Prerequisites
 
 - Node.js (v14.0.0 or higher)
@@ -21,16 +22,23 @@ This repository contains a Node.js server that utilizes Redis for caching and da
 
 1. **Clone the Repository**
 
+```
+https://github.com/Khalidprithy/redis-cache-server.git
+
+```
+
 
 2. **Install Dependencies**
 
+
+Use the `npm install` command to install dependencies.
 
 3. **Configure Environment Variables**
 
    Create a `.env` file in the root of the project and add your Redis URI:
 
 
-   Replace `your_redis_server` with the address of your Redis server.
+   Replace `REDIS_URI` with the address of your Redis server.
 
 4. **Start the Server**
 

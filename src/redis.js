@@ -5,6 +5,7 @@ const zlib = require("node:zlib");
 // Initialize the Redis client variable
 let redisClient = undefined;
 
+// Function to initialize the Redis client
 async function initializeRedisClient() {
     let redisURL = process.env.REDIS_URI;
     if (redisURL) {
@@ -22,6 +23,7 @@ async function initializeRedisClient() {
     }
 }
 
+// Function to generate a unique key for caching based on the request
 function requestToKey(req) {
     const reqDataToHash = {
         url: req.originalUrl,
@@ -30,10 +32,12 @@ function requestToKey(req) {
     return `${req.path}@${hash.sha1(reqDataToHash)}`;
 }
 
+// Function to check if Redis is working (connected)
 function isRedisWorking() {
     return !!redisClient?.isOpen;
 }
 
+// Function to write data to Redis with optional compression
 async function writeData(key, data, options, compress) {
     if (!isRedisWorking()) return;
 
@@ -49,6 +53,7 @@ async function writeData(key, data, options, compress) {
     }
 }
 
+// Function to read data from Redis with optional decompression
 async function readData(key, compressed) {
     if (!isRedisWorking()) return;
 
@@ -58,8 +63,7 @@ async function readData(key, compressed) {
     }
 }
 
-
-
+// Middleware for caching responses in Redis
 function redisCachingMiddleware(compression = true) {
     return async (req, res, next) => {
         if (!isRedisWorking()) {
@@ -109,7 +113,7 @@ function redisCachingMiddleware(compression = true) {
     };
 }
 
-
+// Function to flush all keys from Redis
 const flushAllKeys = async (req, res, next) => {
     try {
         if (!isRedisWorking()) {
@@ -130,8 +134,7 @@ const flushAllKeys = async (req, res, next) => {
     }
 };
 
-
-
+// Function to get all keys from Redis
 const getAllKeys = async (req, res, next) => {
     try {
         if (!isRedisWorking()) {
@@ -151,7 +154,7 @@ const getAllKeys = async (req, res, next) => {
     }
 };
 
-
+// Function to parse Redis info into a more readable format
 function parseRedisInfo(info) {
     const lines = info.split('\r\n');
     const parsedInfo = {};
@@ -171,7 +174,7 @@ function parseRedisInfo(info) {
     return parsedInfo;
 }
 
-
+// Function to get Redis server info
 const getRedisServerInfo = async (req, res, next) => {
     try {
         const info = await redisClient.info();
