@@ -33,6 +33,11 @@ https://github.com/Khalidprithy/redis-cache-server.git
 
 Use the `npm install` command to install dependencies.
 
+```
+npm install
+
+```
+
 3. **Configure Environment Variables**
 
    Create a `.env` file in the root of the project and add your Redis URI:
@@ -42,7 +47,12 @@ Use the `npm install` command to install dependencies.
 
 4. **Start the Server**
 
-   The server will start on the default port (3000) or the port specified in the `.env` file.
+```
+npm start
+
+```
+
+The server will start on the default port (5000) or the port specified in the `.env` file.
 
 ## Usage
 
@@ -58,12 +68,12 @@ To use the caching middleware, simply apply it to any route you wish to cache. F
 
 ### Redis Server Information
 
-Access the `/redis-info` endpoint to fetch detailed information about the Redis server.
+Access the `/redis/info` endpoint to fetch detailed information about the Redis server.
 
 ### Key Management
 
-- **Flush All Keys**: Send a request to the `/flush-all-keys` endpoint to delete all keys from Redis.
-- **Get All Keys**: Send a request to the `/get-all-keys` endpoint to retrieve all keys stored in Redis.
+- **Flush All Keys**: Send a request to the `/redis/flush-all-keys` endpoint to delete all keys from Redis.
+- **Get All Keys**: Send a request to the `/redis/all-keys` endpoint to retrieve all keys stored in Redis.
 
 ## Contributing
 

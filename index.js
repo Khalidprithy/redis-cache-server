@@ -16,8 +16,8 @@ async function startServer() {
 
         // API endpoint to get Redis health information
         app.get('/redis/info', getRedisServerInfo);
-        app.get('/redis/keys', getAllKeys);
-        app.delete('/redis/keys', flushAllKeys);
+        app.get('/redis/all-keys', getAllKeys);
+        app.delete('/redis/flush-all-keys', flushAllKeys);
         // Example API route that fetches data from an external API and caches the response
         app.get('/*', redisCachingMiddleware(), fetchDummyData);
 
