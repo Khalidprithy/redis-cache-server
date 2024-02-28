@@ -24,7 +24,6 @@ This repository contains a Node.js server that utilizes Redis for caching and da
 
 ```
 https://github.com/Khalidprithy/redis-cache-server.git
-
 ```
 
 
@@ -35,7 +34,6 @@ Use the `npm install` command to install dependencies.
 
 ```
 npm install
-
 ```
 
 3. **Configure Environment Variables**
@@ -49,7 +47,6 @@ npm install
 
 ```
 npm start
-
 ```
 
 The server will start on the default port (5000) or the port specified in the `.env` file.
